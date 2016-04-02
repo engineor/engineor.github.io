@@ -3,7 +3,7 @@
     <title><![CDATA[Engineor&#039;s Lab]]></title>
     <link href="/blog/categories/docker.xml" rel="self"/>
     <link href="/"/>
-    <updated>2016-04-02T02:43:02+00:00</updated>
+    <updated>2016-04-02T09:44:22+00:00</updated>
     <id>/</id>
         <generator uri="http://sculpin.io/">Sculpin</generator>
             <entry>
@@ -17,17 +17,255 @@
 
 <h3 id="introduction">Introduction</h3>
 
-<p>If you do not know Docker, please have a look at their website and the numerous presentation of the basic concepts. To keep it short, Docker is a container management system, allowing to have small contained processes instead of virtualising systems, therefore reducing the overhead introduced in the virtualisation.</p>
+<p>If you do not know Docker, please have a look at <a href="https://www.docker.com/what-docker">their website</a> and the numerous presentation of the basic concepts. To keep it short, Docker is a container management system, allowing to have small contained processes instead of virtualising systems, therefore reducing the overhead introduced in the virtualisation.</p>
+
+<p><img src="https://static-lab.engineor.com/Dockerizing-a-simple-website/containers-vs-vms.png" alt="Docker: containers vs vms" />
+Retrieved from <a href="https://blog.logentries.com/2015/07/an-all-inclusive-log-monitoring-container-for-docker/">Blog Logentries: an all inclusive log monitoring container for docker</a></p>
+
+<p>This tutorial will guide you through the <strong>implementation of a very simple website</strong>, the setup of a <strong>web server running Docker</strong> and the creation of a <strong>single container</strong> that <strong>embed the full website</strong>.</p>
 
 <h3 id="assumptions-and-definitions">Assumptions and definitions</h3>
 
-<p>For this tutorial, we will start with a fresh Ubuntu Server 14.04.1 installation on Digital Ocean, but you can follow the same steps with any similar Ubuntu server. Please comment if you see any major difference.</p>
+<p>For this tutorial, we will start with a fresh Ubuntu Server installation on Digital Ocean, but you can follow the same steps with any similar Ubuntu server. Please comment if you see any major difference.</p>
 
-<h3 id="setting-up">Setting up</h3>
+<p><img src="https://static-lab.engineor.com/Dockerizing-a-simple-website/digital-ocean.png" alt="Digital Ocean logo" />
+<img src="https://static-lab.engineor.com/Dockerizing-a-simple-website/ubuntu.png" alt="Ubuntu logo" /></p>
 
-<h3 id="core-concepts">Core concepts</h3>
+<p>We also consider you know HTML, CSS and Javascript enough to create a static website, or at least you can read the code we will provide.</p>
+
+<p>Last requirement before we start, you must know the basic commands to connect to a Linux machine using SSH and browse folders / create files (including <code>ssh</code>, <code>cd</code>, <code>mkdir</code>, <code>touch</code> and <code>vim</code> or <code>nano</code>).</p>
+
+<h3 id="setting-up-the-server">Setting up the server</h3>
+
+<p>First thing first, let's create a <code>droplet</code> on Digital Ocean. This steps requires for you to have a Digital Ocean account, you can use this referal link to get one if you have to register: <a href="https://m.do.co/c/60774d3ab512">get $10 free Digital Ocean credit</a>.</p>
+
+<p>We will use a standard <code>Ubuntu 14.04.4 x64</code> distribution (the server version), so you can create the same on your own machine or provider. Select the smallest instance size as we are only serving static content, and the datacenter region the closest to you. If you have an <code>ssh</code> key, please add it so no password are required to access the machine.</p>
+
+<p>Once create, get on your instance details page, and copy the IP address. Use the following command to connect in your terminal or in putty for Windows users:</p>
+
+<p><code>ssh root@ip_address_you_just_copied</code></p>
+
+<p>If you added your <code>ssh</code> key, you should be connected. Else, please find out the password and access the server.</p>
+
+<p>Now we will <a href="https://docs.docker.com/linux/step_one/">install Docker</a>: this step requires to add an extra repository to <code>apt</code> to get the latest version of Docker, then refresh and install. This is all combined in a script provided by Docker, so you only have to run the following command:</p>
+
+<pre><code>curl -fsSL https://get.docker.com/ | sh
+</code></pre>
+
+<p><strong>If you use a non-root user, which is recommanded, please read the script output, execute <code>sudo usermod -aG docker `whoami`</code> and logout / login again.</strong></p>
+
+<p>Let's see if everything worked:</p>
+
+<ul>
+<li><code>docker --version</code> gives something like <code>Docker version 1.10.3, build 20f81dd</code></li>
+<li><code>docker ps</code> gives <code>CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS               NAMES</code></li>
+<li><code>docker run hello-world</code> gives the following output:</li>
+</ul>
+
+<pre><code>Unable to find image 'hello-world:latest' locally
+latest: Pulling from library/hello-world
+03f4658f8b78: Pull complete 
+a3ed95caeb02: Pull complete 
+Digest: sha256:8be990ef2aeb16dbcb9271ddfe2610fa6658d13f6dfb8bc72074cc1ca36966a7
+Status: Downloaded newer image for hello-world:latest
+
+Hello from Docker.
+This message shows that your installation appears to be working correctly.
+
+To generate this message, Docker took the following steps:
+ 1. The Docker client contacted the Docker daemon.
+ 2. The Docker daemon pulled the "hello-world" image from the Docker Hub.
+ 3. The Docker daemon created a new container from that image which runs the
+    executable that produces the output you are currently reading.
+ 4. The Docker daemon streamed that output to the Docker client, which sent it
+    to your terminal.
+
+To try something more ambitious, you can run an Ubuntu container with:
+ $ docker run -it ubuntu bash
+
+Share images, automate workflows, and more with a free Docker Hub account:
+ https://hub.docker.com
+
+For more examples and ideas, visit:
+ https://docs.docker.com/userguide/
+</code></pre>
+
+<p>The server is now ready to run docker images containing our web application.</p>
+
+<h3 id="website-implementation">Website implementation</h3>
+
+<p>As this is not the aim of the tutorial, we will keep the website as simple as possible.</p>
+
+<p>Assuming you are in <code>/root</code> and logged in with the user <code>root</code> (use <code>pwd</code> and <code>whoami</code>), we will create the following files in <strong>a new <code>src</code> folder</strong> (<code>mkdir src</code>, then <code>vim src index.html</code> or <code>nano src/index.html</code>).</p>
+
+<h4 id="html%3A-%60index.html%60">HTML: <code>index.html</code></h4>
+
+<pre><code class="html">&lt;!Doctype html&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;meta charset="utf-8"&gt;
+        &lt;title&gt;Dockerizing a simple website&lt;/title&gt;
+        &lt;link rel="stylesheet" href="style.css"&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;Dockerizing a simple website&lt;/h1&gt;
+        &lt;script src="script.js"&gt;&lt;/script&gt;
+    &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h4 id="css%3A-%60style.css%60">CSS: <code>style.css</code></h4>
+
+<pre><code class="css">h1 {
+    color: #34495e;
+    text-align: center;
+}
+</code></pre>
+
+<h4 id="javascript%3A-%60script.js%60">Javascript: <code>script.js</code></h4>
+
+<pre><code class="js">function ready(fn) {
+  if (document.readyState != 'loading'){
+    fn();
+  } else {
+    document.addEventListener('DOMContentLoaded', fn);
+  }
+}
+ready(function() {
+    alert('Dockerized?');
+});
+</code></pre>
+
+<h3 id="dockerizing">Dockerizing</h3>
+
+<p>Docker offers <code>images</code>, immutable structures, in a way as would be the classes in an OOP code, and <code>containers</code>, mutable instances of specified classes.</p>
+
+<p><code>Images</code> are described using a <code>Dockerfile</code>, and can inherit from other images. Some free images are available on Docker Hub and can be pulled with not extra work required.</p>
+
+<p>We will have to create an image first, embedding our static code, and then create a container from it. This container is supposed to be exposing its port 80 to the outside world (any client from outside the server).</p>
+
+<h4 id="run-a-simple-container">Run a simple container</h4>
+
+<p>First step in this process will be running and exposing a simple container, instance of a public image supported by Docker. Because we want to answer to http connections, we will use a Nginx container.</p>
+
+<p>Go to the <a href="https://hub.docker.com/_/nginx/">Docker Hub Nginx page</a>, and read the documentation.</p>
+
+<p>Let's try to run it with the following command:</p>
+
+<pre><code>docker run --rm -p 80:80 nginx
+</code></pre>
+
+<ul>
+<li><code>run</code> is the action to execute.</li>
+<li><code>--rm</code> indicates that the container has to be removed when stopped.</li>
+<li><code>-p 80:80</code> forward the ports: the first one is the inside the container, the second is your main server.</li>
+<li><code>nginx</code> is the name of the image available on Docker Hub.</li>
+</ul>
+
+<p>The image will then be downloaded. Wait for it!</p>
+
+<p>You should be stuck on <code>Status: Downloaded newer image for nginx:latest</code> if everything went well. The process is running in foreground, so you can't do anything else on the server for now.</p>
+
+<p>Remember the ip address of your machine? Try to access it in your web browser. You should see the default Nginx page.</p>
+
+<pre><code>Welcome to nginx!
+
+If you see this page, the nginx web server is successfully installed and working. Further configuration is required.
+
+For online documentation and support please refer to nginx.org.
+Commercial support is available at nginx.com.
+
+Thank you for using nginx.
+</code></pre>
+
+<p>You can also have a look back to your ssh session: an error has been printed for a missing favicon file, and then your page has been served.</p>
+
+<pre><code>82.41.239.46 - - [02/Apr/2016:04:16:12 +0000] "GET / HTTP/1.1" 200 612 "-" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.110 Safari/537.36" "-"
+2016/04/02 04:16:12 [error] 6#6: *1 open() "/usr/share/nginx/html/favicon.ico" failed (2: No such file or directory), client: 82.41.239.46, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "104.236.82.144", referrer: "http://104.236.82.144/"
+82.41.239.46 - - [02/Apr/2016:04:16:12 +0000] "GET /favicon.ico HTTP/1.1" 404 571 "http://104.236.82.144/" "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/49.0.2623.110 Safari/537.36" "-"
+</code></pre>
+
+<p>Well done, we now know how to expose someone else's code... Press <code>ctrl+c</code> to stop the container, and because we used <code>--rf</code> it will completely disappear (try <code>docker ps</code>, it should not be there).</p>
+
+<h4 id="add-your-own-code">Add your own code</h4>
+
+<p>We have multiple solutions to add our own code here.</p>
+
+<p>First, let's try to run the same container with an extra option to share some data from our host machine to the container. The <code>-v</code> option allows this precisely:</p>
+
+<pre><code>docker run --rm -p 80:80 -v `pwd`/src:/usr/share/nginx/html:ro nginx
+</code></pre>
+
+<p><em>This command works assuming <code>pwd</code> is <code>/root</code>.</em></p>
+
+<p><code>-v</code> allows to map directories from the host machine (first member) to the container (after the first column), and finally an optional column followed by the opening mode (read / write by default, <code>ro</code> is read only when specified).</p>
+
+<p>Refresh your web browser page and you should see the website.</p>
+
+<p>Use <code>ctrl+c</code> again to stop and remove the container and refresh your web browser to see that the page is not accessible anymore.</p>
+
+<p>For portability reasons, we do not want to share a code available on the server filesystem. What we actually want is embed and be able to distribute a Docker image that contains the whole code. Therefore, we will need to extend the Nginx image and add the code.</p>
+
+<p>Create a file named <code>Dockerfile</code> (still assuming you are in <code>/root</code>), and add the following content:</p>
+
+<pre><code>FROM nginx:stable
+MAINTAINER: Thomas Dutrion &lt;thomas@engineor.com&gt;
+
+COPY src/ /usr/share/nginx/html
+</code></pre>
+
+<p>The first line indicates that we will extends the base image <code>nginx</code>, with the tag <code>stable</code> (tags after the columns allow you to specify the version of the image that you want. Then, the maintainer is just an information you give in order for others to contact you if they want to change anything or if they find you clever.</p>
+
+<p>The last line however is more interesting. Two commands exist in a <code>Dockerfile</code> to add files to an image: <code>COPY</code> and <code>ADD</code>. In this file, we just want a plain copy from a local filesystem to the container filesystem, which is provided by <code>COPY</code> with no overhead. On the other hand, <code>ADD</code> is doing slightly more work, and allows to unarchive any added archive and add files from the web. Have a look at the documentation for further explained details: <a href="https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#add-or-copy">Dockerfile best practices: ADD or COPY</a>.</p>
+
+<p>Now, we can build the image using our Dockerfile. Use the command <code>docker build -t test/my-static-website .</code> to do so.</p>
+
+<p><code>-t test/my-static-website</code> assign the name <code>test/my-static-website</code> to your image. Images on the local machine can be listed using <code>docker images</code>.
+<code>.</code> at the end of the command says "find the <code>Dockerfile</code> in the current directory and build from it.</p>
+
+<p>Here is the result of the <code>docker images</code> command:</p>
+
+<pre><code>REPOSITORY               TAG                 IMAGE ID            CREATED             SIZE
+test/my-static-website   latest              3be8bb475bd8        15 seconds ago      133.3 MB
+nginx                    stable              4b90b5603d01        3 weeks ago         133.3 MB
+nginx                    latest              af4b3d7d5401        3 weeks ago         190.5 MB
+hello-world              latest              690ed74de00f        5 months ago        960 B
+</code></pre>
+
+<p>As you can see, we have our new image on top of the list. Then we have <code>nginx</code> twice, because we did not specify any tag in the first commands we used, which resulted in using <code>latest</code>, but specified <code>stable</code> in the <code>Dockerfile</code>. We therefore need to choose only one and remove the unused ones. Use <code>docker ps -a</code> to see all the running and stopped containers. Nothing is running at the moment, we can therefore just remove Nginx stable: <code>docker rmi nginx:latest</code>. We can remove the Hello World container and image in the same time: <code>docker rmi -f hello-world</code>.</p>
+
+<p>Using the command <code>docker history</code>, we can see the details on how the image is build for optimisation later on: <code>docker history test/my-static-website</code>.</p>
+
+<pre><code>IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
+3be8bb475bd8        14 minutes ago      /bin/sh -c #(nop) COPY dir:756a5897ea96098ea4   541 B               
+0bf59b18aafc        14 minutes ago      /bin/sh -c #(nop) MAINTAINER Thomas Dutrion &lt;   0 B                 
+4b90b5603d01        3 weeks ago         /bin/sh -c #(nop) CMD ["nginx" "-g" "daemon o   0 B                 
+&lt;missing&gt;           3 weeks ago         /bin/sh -c #(nop) EXPOSE 443/tcp 80/tcp         0 B                 
+&lt;missing&gt;           3 weeks ago         /bin/sh -c ln -sf /dev/stdout /var/log/nginx/   22 B                
+&lt;missing&gt;           3 weeks ago         /bin/sh -c apt-key adv --keyserver hkp://pgp.   8.223 MB            
+&lt;missing&gt;           3 weeks ago         /bin/sh -c #(nop) ENV NGINX_VERSION=1.8.1-1~j   0 B                 
+&lt;missing&gt;           4 weeks ago         /bin/sh -c #(nop) MAINTAINER NGINX Docker Mai   0 B                 
+&lt;missing&gt;           4 weeks ago         /bin/sh -c #(nop) CMD ["/bin/bash"]             0 B                 
+&lt;missing&gt;           4 weeks ago         /bin/sh -c #(nop) ADD file:b5391cb13172fb513d   125.1 MB
+</code></pre>
+
+<p>You can see here the cost of each instruction, and optimise the image based on this data. This will be discussed in another tutorial later on.</p>
+
+<p>Back to our current aim, we now have the image in our list, so we still have to create a container: <code>docker run -d --name my-static-website -p 80:80 test/my-static-website</code>. This will give you an output similar to <code>0445b0c32d57d859d8ef4a4507020369cb77f237e1ed9f537cb9519e2f25677b</code>.</p>
+
+<p>As you can see, we used <code>-d</code> instead of <code>--rm</code> in the previous commands. This allows to run the container in background (deamon). <code>--name</code> allows us to define a name for the container that we will be able to use later to target this container. <code>docker ps</code> will give you an output as described thereafter:</p>
+
+<pre><code>CONTAINER ID        IMAGE                    COMMAND                  CREATED             STATUS              PORTS                         NAMES
+80739c8b5851        test/my-static-website   "nginx -g 'daemon off"   6 seconds ago       Up 5 seconds        0.0.0.0:80-&gt;80/tcp, 443/tcp   my-static-website
+</code></pre>
+
+<p>You can access the website again in your web browser and see that it works as expected.</p>
 
 <h3 id="wrapping-up">Wrapping up</h3>
+
+<p>You have now seen different techniques for creating a Docker container containing your static website and how to run it on your server. The image we created can be reused on any Docker host, which will be the object of another tutorial.</p>
+
+<p>The next step for us will be to deploy a PHP application that has the ability to send emails, as it is a current use case for any showcasing website.</p>
 ]]></content>
         </entry>
     </feed>
