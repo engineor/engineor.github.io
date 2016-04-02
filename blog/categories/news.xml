@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Engineor&#039;s Lab]]></title>
+    <link href="/blog/categories/news.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2016-04-02T02:38:59+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Hello World!]]></title>
+            <link href="/blog/hello-world"/>
+            <updated>2016-04-01T00:00:00+00:00</updated>
+            <id>/blog/hello-world</id>
+            <content type="html"><![CDATA[<p>Hello World!
+Here's the first post of this blog, just to get started!</p>
+
+<p><img src="https://static-lab.engineor.com/hello-world/logo-blue.png" alt="Engineor Logo" /></p>
+
+<p>Engineor LTD is a company we founded 2 years ago in order to provide high quality development services. I am not sure whether this goal as been achieved, but at least we had some time to spend on investing new technologies, and therefore we have always been willing to open this blog and share with you all.</p>
+
+<p>For technical reasons, mainly because we love PHP and have no time to spend on choosing another blog engine and theme, we decided to use Sculpin to power this blog.</p>
+
+<p>Let's just hope you will enjoy our writting, and let us know if you either want us to discuss something specific or request a fix in any article!</p>
+]]></content>
+        </entry>
+    </feed>

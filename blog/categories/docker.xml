@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title><![CDATA[Engineor&#039;s Lab]]></title>
+    <link href="/blog/categories/docker.xml" rel="self"/>
+    <link href="/"/>
+    <updated>2016-04-02T02:38:59+00:00</updated>
+    <id>/</id>
+        <generator uri="http://sculpin.io/">Sculpin</generator>
+            <entry>
+            <title type="html"><![CDATA[Dockerizing a simple website]]></title>
+            <link href="/blog/Dockerizing-a-simple-website"/>
+            <updated>2016-04-02T00:00:00+00:00</updated>
+            <id>/blog/Dockerizing-a-simple-website</id>
+            <content type="html"><![CDATA[<p>First tutorial of this blog, this has been our initial step in getting to deploy websites with Docker.</p>
+
+<p><img src="https://static-lab.engineor.com/Dockerizing-a-simple-website/docker.png" alt="Docker logo" /></p>
+
+<h3 id="introduction">Introduction</h3>
+
+<p>If you do not know Docker, please have a look at their website and the numerous presentation of the basic concepts. To keep it short, Docker is a container management system, allowing to have small contained processes instead of virtualising systems, therefore reducing the overhead introduced in the virtualisation.</p>
+
+<h3 id="assumptions-and-definitions">Assumptions and definitions</h3>
+
+<p>For this tutorial, we will start with a fresh Ubuntu Server 14.04.1 installation on Digital Ocean, but you can follow the same steps with any similar Ubuntu server. Please comment if you see any major difference.</p>
+
+<h3 id="setting-up">Setting up</h3>
+
+<h3 id="core-concepts">Core concepts</h3>
+
+<h3 id="wrapping-up">Wrapping up</h3>
+]]></content>
+        </entry>
+    </feed>
