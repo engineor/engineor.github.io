@@ -4,6 +4,6 @@
 title: Engineor's Lab 
 subtitle: That's what we do!
 
-# Insert your disqus shortname
-#disqus:
-#    shortname:
+# disqus shortname
+disqus:
+    shortname: lab-engineor
