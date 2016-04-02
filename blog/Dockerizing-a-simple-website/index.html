@@ -98,15 +98,19 @@ Retrieved from <a href="https://blog.logentries.com/2015/07/an-all-inclusive-log
 
 <h3 id="setting-up-the-server">Setting up the server</h3>
 
+<h4 id="provisionning-the-virtual-machine">Provisionning the virtual machine</h4>
+
 <p>First thing first, let's create a <code>droplet</code> on Digital Ocean. This steps requires for you to have a Digital Ocean account, you can use this referal link to get one if you have to register: <a href="https://m.do.co/c/60774d3ab512">get $10 free Digital Ocean credit</a>.</p>
 
 <p>We will use a standard <code>Ubuntu 14.04.4 x64</code> distribution (the server version), so you can create the same on your own machine or provider. Select the smallest instance size as we are only serving static content, and the datacenter region the closest to you. If you have an <code>ssh</code> key, please add it so no password are required to access the machine.</p>
 
-<p>Once create, get on your instance details page, and copy the IP address. Use the following command to connect in your terminal or in putty for Windows users:</p>
+<p>Once created, get on your instance details page, and copy the IP address. Use the following command to connect in your terminal or in putty for Windows users:</p>
 
 <p><code>ssh root@ip_address_you_just_copied</code></p>
 
-<p>If you added your <code>ssh</code> key, you should be connected. Else, please find out the password and access the server.</p>
+<p>If you added your <code>ssh</code> key, you should be connected. Otherwise, please find out the password and access the server.</p>
+
+<h4 id="installing-docker">Installing Docker</h4>
 
 <p>Now we will <a href="https://docs.docker.com/linux/step_one/">install Docker</a>: this step requires to add an extra repository to <code>apt</code> to get the latest version of Docker, then refresh and install. This is all combined in a script provided by Docker, so you only have to run the following command:</p>
 
@@ -275,14 +279,14 @@ MAINTAINER: Thomas Dutrion &lt;thomas@engineor.com&gt;
 COPY src/ /usr/share/nginx/html
 </code></pre>
 
-<p>The first line indicates that we will extends the base image <code>nginx</code>, with the tag <code>stable</code> (tags after the columns allow you to specify the version of the image that you want. Then, the maintainer is just an information you give in order for others to contact you if they want to change anything or if they find you clever.</p>
+<p>The first line indicates that we will extends the base image <code>nginx</code>, with the tag <code>stable</code> (tags after the columns allow you to specify the version of the image that you want). Then, the maintainer is just an information you give in order for others to contact you if they want to change anything or if they find you clever.</p>
 
 <p>The last line however is more interesting. Two commands exist in a <code>Dockerfile</code> to add files to an image: <code>COPY</code> and <code>ADD</code>. In this file, we just want a plain copy from a local filesystem to the container filesystem, which is provided by <code>COPY</code> with no overhead. On the other hand, <code>ADD</code> is doing slightly more work, and allows to unarchive any added archive and add files from the web. Have a look at the documentation for further explained details: <a href="https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#add-or-copy">Dockerfile best practices: ADD or COPY</a>.</p>
 
 <p>Now, we can build the image using our Dockerfile. Use the command <code>docker build -t test/my-static-website .</code> to do so.</p>
 
 <p><code>-t test/my-static-website</code> assign the name <code>test/my-static-website</code> to your image. Images on the local machine can be listed using <code>docker images</code>.
-<code>.</code> at the end of the command says "find the <code>Dockerfile</code> in the current directory and build from it.</p>
+<code>.</code> at the end of the command says "find the <code>Dockerfile</code> in the current directory and build from it".</p>
 
 <p>Here is the result of the <code>docker images</code> command:</p>
 
@@ -293,7 +297,11 @@ nginx                    latest              af4b3d7d5401        3 weeks ago    
 hello-world              latest              690ed74de00f        5 months ago        960 B
 </code></pre>
 
-<p>As you can see, we have our new image on top of the list. Then we have <code>nginx</code> twice, because we did not specify any tag in the first commands we used, which resulted in using <code>latest</code>, but specified <code>stable</code> in the <code>Dockerfile</code>. We therefore need to choose only one and remove the unused ones. Use <code>docker ps -a</code> to see all the running and stopped containers. Nothing is running at the moment, we can therefore just remove Nginx stable: <code>docker rmi nginx:latest</code>. We can remove the Hello World container and image in the same time: <code>docker rmi -f hello-world</code>.</p>
+<p>As you can see, we have our new image on top of the list. Then we have <code>nginx</code> twice, because we did not specify any tag in the first commands we used, which resulted in using <code>latest</code>, but specified <code>stable</code> in the <code>Dockerfile</code>.</p>
+
+<p>We therefore need to choose only one and remove the unused ones. Use <code>docker ps -a</code> to see all the running and stopped containers. Nothing is running at the moment, we can therefore just remove Nginx stable: <code>docker rmi nginx:latest</code>.</p>
+
+<p>We can also remove the Hello World container and image in the same time: <code>docker rmi -f hello-world</code>.</p>
 
 <p>Using the command <code>docker history</code>, we can see the details on how the image is build for optimisation later on: <code>docker history test/my-static-website</code>.</p>
 
