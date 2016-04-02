@@ -35,15 +35,19 @@ Last requirement before we start, you must know the basic commands to connect to
 
 ### Setting up the server
 
+####Provisionning the virtual machine
+
 First thing first, let's create a `droplet` on Digital Ocean. This steps requires for you to have a Digital Ocean account, you can use this referal link to get one if you have to register: [get $10 free Digital Ocean credit](https://m.do.co/c/60774d3ab512).
 
 We will use a standard `Ubuntu 14.04.4 x64` distribution (the server version), so you can create the same on your own machine or provider. Select the smallest instance size as we are only serving static content, and the datacenter region the closest to you. If you have an `ssh` key, please add it so no password are required to access the machine.
 
-Once create, get on your instance details page, and copy the IP address. Use the following command to connect in your terminal or in putty for Windows users:
+Once created, get on your instance details page, and copy the IP address. Use the following command to connect in your terminal or in putty for Windows users:
 
 ```ssh root@ip_address_you_just_copied```
 
-If you added your `ssh` key, you should be connected. Else, please find out the password and access the server.
+If you added your `ssh` key, you should be connected. Otherwise, please find out the password and access the server.
+
+#### Installing Docker
 
 Now we will [install Docker](https://docs.docker.com/linux/step_one/): this step requires to add an extra repository to `apt` to get the latest version of Docker, then refresh and install. This is all combined in a script provided by Docker, so you only have to run the following command:
 
@@ -216,14 +220,14 @@ MAINTAINER: Thomas Dutrion <thomas@engineor.com>
 COPY src/ /usr/share/nginx/html
 ```
 
-The first line indicates that we will extends the base image `nginx`, with the tag `stable` (tags after the columns allow you to specify the version of the image that you want. Then, the maintainer is just an information you give in order for others to contact you if they want to change anything or if they find you clever.
+The first line indicates that we will extends the base image `nginx`, with the tag `stable` (tags after the columns allow you to specify the version of the image that you want). Then, the maintainer is just an information you give in order for others to contact you if they want to change anything or if they find you clever.
 
 The last line however is more interesting. Two commands exist in a `Dockerfile` to add files to an image: `COPY` and `ADD`. In this file, we just want a plain copy from a local filesystem to the container filesystem, which is provided by `COPY` with no overhead. On the other hand, `ADD` is doing slightly more work, and allows to unarchive any added archive and add files from the web. Have a look at the documentation for further explained details: [Dockerfile best practices: ADD or COPY](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/#add-or-copy).
 
 Now, we can build the image using our Dockerfile. Use the command `docker build -t test/my-static-website .` to do so.
 
 `-t test/my-static-website` assign the name `test/my-static-website` to your image. Images on the local machine can be listed using `docker images`.
-`.` at the end of the command says "find the `Dockerfile` in the current directory and build from it.
+`.` at the end of the command says "find the `Dockerfile` in the current directory and build from it".
 
 Here is the result of the `docker images` command:
 
@@ -235,7 +239,11 @@ nginx                    latest              af4b3d7d5401        3 weeks ago    
 hello-world              latest              690ed74de00f        5 months ago        960 B
 ```
 
-As you can see, we have our new image on top of the list. Then we have `nginx` twice, because we did not specify any tag in the first commands we used, which resulted in using `latest`, but specified `stable` in the `Dockerfile`. We therefore need to choose only one and remove the unused ones. Use `docker ps -a` to see all the running and stopped containers. Nothing is running at the moment, we can therefore just remove Nginx stable: `docker rmi nginx:latest`. We can remove the Hello World container and image in the same time: `docker rmi -f hello-world `.
+As you can see, we have our new image on top of the list. Then we have `nginx` twice, because we did not specify any tag in the first commands we used, which resulted in using `latest`, but specified `stable` in the `Dockerfile`.
+
+We therefore need to choose only one and remove the unused ones. Use `docker ps -a` to see all the running and stopped containers. Nothing is running at the moment, we can therefore just remove Nginx stable: `docker rmi nginx:latest`.
+
+We can also remove the Hello World container and image in the same time: `docker rmi -f hello-world `.
 
 Using the command `docker history`, we can see the details on how the image is build for optimisation later on: `docker history test/my-static-website`.
 
